@@ -96,8 +96,36 @@ a.quiet-link:hover {
 .rule {
   border: 0;
   border-top: 1px solid var(--tt-white);
-  margin: 24px 0;
+  margin: 16px 0;
 }
+
+/* Ceefax section bar: yellow on solid blue, full width */
+.bar-h {
+  display: block;
+  background: var(--tt-blue);
+  color: var(--tt-yellow);
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 4px 8px;
+}
+
+/* Fastext footer: the four coloured remote-button links */
+.fastext {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 8px 0;
+}
+.fastext .ft-red { color: var(--tt-red); }
+.fastext .ft-green { color: var(--tt-green); }
+.fastext .ft-yellow { color: var(--tt-yellow); }
+.fastext .ft-cyan { color: var(--tt-cyan); }
+.fastext .ft-red:hover { background: var(--tt-red); color: var(--tt-black); }
+.fastext .ft-green:hover { background: var(--tt-green); color: var(--tt-black); }
+.fastext .ft-yellow:hover { background: var(--tt-yellow); color: var(--tt-black); }
+.fastext .ft-cyan:hover { background: var(--tt-cyan); color: var(--tt-black); }
 
 /* ————— TABLES ————— */
 table.tt {

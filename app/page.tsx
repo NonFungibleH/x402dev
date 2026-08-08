@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <Page p="P100">
       <h1 className="dh dh-white uppercase">The Agent Economy</h1>
-      <p className="text-tt-cyan uppercase font-semibold pb-6">
+      <p className="text-tt-cyan uppercase font-semibold pb-3">
         Independent numbers · Updated every 6 hours
       </p>
 
@@ -34,7 +34,7 @@ export default function Home() {
       <hr className="rule" />
 
       {/* stat block */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-6 pb-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-3 pb-1">
         <div>
           <div className="uppercase text-tt-cyan font-semibold">Live endpoints</div>
           <div className="dh">
@@ -54,9 +54,7 @@ export default function Home() {
         </div>
       </div>
 
-      <hr className="rule" />
-
-      <h2 className="uppercase text-tt-cyan font-semibold pb-2">Live endpoints — 30 days</h2>
+      <h2 className="bar-h mb-2 mt-4">Live endpoints — 30 days</h2>
       <LineChart
         values={stats.liveSeries30d}
         title="Live x402 endpoints over the last 30 days"
@@ -64,9 +62,7 @@ export default function Home() {
         xEnd={ttShortDate(today)}
       />
 
-      <hr className="rule" />
-
-      <h2 className="uppercase text-tt-cyan font-semibold pb-2">Latest</h2>
+      <h2 className="bar-h mb-2 mt-4">Latest</h2>
       <Changelog events={events} />
     </Page>
   );

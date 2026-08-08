@@ -51,9 +51,7 @@ export default async function EndpointPage({ params }: { params: Promise<{ slug:
         <a href={explorer} rel="noopener noreferrer" className="break-all">{e.payTo}</a>
       </p>
 
-      <hr className="rule" />
-
-      <h2 className="uppercase text-tt-cyan font-semibold pb-2">Latency — 30 days (median ms)</h2>
+      <h2 className="bar-h mb-2 mt-4">Latency — 30 days (median ms)</h2>
       <LineChart
         values={e.latencySeries}
         color="#00E5E5"
@@ -65,7 +63,7 @@ export default async function EndpointPage({ params }: { params: Promise<{ slug:
 
       {e.priceSeries.length > 1 && (
         <>
-          <h2 className="uppercase text-tt-cyan font-semibold pb-2 pt-6">
+          <h2 className="bar-h mt-6 mb-2">
             Price history (USDC, currently {usdc(e.priceUsdc)})
           </h2>
           <LineChart
@@ -78,9 +76,7 @@ export default async function EndpointPage({ params }: { params: Promise<{ slug:
         </>
       )}
 
-      <hr className="rule" />
-
-      <h2 className="uppercase text-tt-cyan font-semibold pb-2">Changelog</h2>
+      <h2 className="bar-h mb-2 mt-6">Changelog</h2>
       {events.length ? <Changelog events={events} linkRows={false} /> : (
         <p className="uppercase text-tt-white">No events recorded</p>
       )}

@@ -26,9 +26,15 @@ export default function Page({ p, children }: { p: string; children: React.React
           ))}
         </ul>
       </nav>
-      <main className="container-tt w-full flex-1 pb-16 pt-4">{children}</main>
+      <main className="container-tt w-full flex-1 pb-10 pt-3">{children}</main>
       <footer className="container-tt w-full pb-8 text-[12px] leading-relaxed">
-        <hr className="rule" />
+        <nav aria-label="Fastext" className="fastext text-[14px]">
+          <Link href="/" className="ft-red">Index</Link>
+          <Link href="/endpoints" className="ft-green">Endpoints</Link>
+          <Link href="/reports" className="ft-yellow">Reports</Link>
+          <Link href="/graveyard" className="ft-cyan">Graveyard</Link>
+        </nav>
+        <hr className="rule !mt-1" />
         {IS_DEMO && (
           <p className="text-tt-magenta uppercase font-semibold pb-2">
             Test transmission — all figures are simulated demonstration data. First live broadcast pending.
