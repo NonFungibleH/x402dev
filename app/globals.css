@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+/* ————— TELETEXT TOKEN LAYER ————— */
+:root {
+  --tt-black:   #0A0A0A;
+  --tt-white:   #F2F2F2;
+  --tt-yellow:  #FFD400;
+  --tt-cyan:    #00E5E5;
+  --tt-green:   #2BD94A;
+  --tt-red:     #FF3B30;
+  --tt-magenta: #FF4DC4;
+  --tt-blue:    #1F3BFF;
+}
+
+@theme inline {
+  --color-tt-black:   var(--tt-black);
+  --color-tt-white:   var(--tt-white);
+  --color-tt-yellow:  var(--tt-yellow);
+  --color-tt-cyan:    var(--tt-cyan);
+  --color-tt-green:   var(--tt-green);
+  --color-tt-red:     var(--tt-red);
+  --color-tt-magenta: var(--tt-magenta);
+  --color-tt-blue:    var(--tt-blue);
+  --font-plex: var(--font-plex);
+  --font-vt: var(--font-vt323);
+}
+
+/* teletext has no curves — hard guard */
+*, *::before, *::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html {
+  background: var(--tt-black);
+}
+
+body {
+  background: var(--tt-black);
+  color: var(--tt-white);
+  font-family: var(--font-plex), monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (max-width: 767px) {
+  body { font-size: 16px; }
+}
+
+.container-tt {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ————— TYPE ————— */
+.dh {
+  font-family: var(--font-vt323), monospace;
+  font-size: 2.4em;
+  line-height: 1.1;
+  color: var(--tt-yellow);
+}
+.dh-white { color: var(--tt-white); }
+
+a {
+  color: var(--tt-cyan);
+  text-decoration: none;
+}
+a:hover {
+  background: var(--tt-cyan);
+  color: var(--tt-black);
+}
+a.quiet-link:hover {
+  background: transparent;
+  color: var(--tt-cyan);
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--tt-yellow);
+  outline-offset: 1px;
+}
+
+::selection {
+  background: var(--tt-yellow);
+  color: var(--tt-black);
+}
+
+/* ————— RULES & BARS ————— */
+.masthead-bar {
+  height: 4px;
+  background: var(--tt-blue);
+}
+.rule {
+  border: 0;
+  border-top: 1px solid var(--tt-white);
+  margin: 24px 0;
+}
+
+/* ————— TABLES ————— */
+table.tt {
+  width: 100%;
+  border-collapse: collapse;
+}
+table.tt th {
+  background: var(--tt-blue);
+  color: var(--tt-white);
+  text-transform: uppercase;
+  font-weight: 600;
+  text-align: left;
+  height: 32px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+table.tt td {
+  height: 32px;
+  padding: 0 8px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+table.tt th.num, table.tt td.num { text-align: right; }
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* sortable header buttons */
+table.tt th button {
+  all: unset;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+table.tt th button:focus-visible {
+  outline: 2px solid var(--tt-yellow);
+  outline-offset: 1px;
+}
+table.tt th.sorted button { color: var(--tt-yellow); }
+
+/* ————— FORMS (FIND:) ————— */
+.find-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+}
+.find-line label { color: var(--tt-cyan); font-weight: 600; }
+.find-line input {
+  background: var(--tt-black);
+  border: 1px solid var(--tt-white);
+  color: var(--tt-white);
+  font-family: inherit;
+  font-size: inherit;
+  padding: 2px 8px;
+  caret-color: var(--tt-cyan);
+  width: 240px;
+  max-width: 60vw;
+}
+
+/* ————— LONG-FORM (P3xx) ————— */
+.longform {
+  max-width: 68ch;
+  line-height: 1.7;
+}
+.longform p { margin: 16px 0; }
+.longform h2 {
+  color: var(--tt-yellow);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 32px 0 8px;
+}
+
+/* ————— MISC ————— */
+.strike-red {
+  position: relative;
+  display: inline-block;
+}
+.strike-red::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 50%;
+  height: 3px;
+  margin-top: -1px;
+  background: var(--tt-red);
+}
+
+pre.payload {
+  background: #111111;
+  color: var(--tt-white);
+  padding: 16px;
+  overflow-x: auto;
+  font-family: var(--font-plex), monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+details.payload-toggle > summary {
+  cursor: pointer;
+  color: var(--tt-cyan);
+  list-style: none;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+details.payload-toggle > summary::-webkit-details-marker { display: none; }
+details.payload-toggle > summary::before { content: "+ "; }
+details.payload-toggle[open] > summary::before { content: "\2212 "; }
+
+@media (max-width: 379px) {
+  .masthead-date { display: none; }
+}
