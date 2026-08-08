@@ -14,7 +14,7 @@ interface Props {
 export default function LineChart({ values, color = "#FFD400", height = 200, yLabel, xStart, xEnd, title }: Props) {
   const W = 1048;
   const H = height;
-  const PAD_L = 48;
+  const PAD_L = 64;
   const PAD_B = 24;
   const PAD_T = 12;
   const min = Math.min(...values);
@@ -27,7 +27,11 @@ export default function LineChart({ values, color = "#FFD400", height = 200, yLa
   const y = (v: number) => PAD_T + (1 - (v - lo) / (hi - lo)) * (H - PAD_T - PAD_B);
   const path = values.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
 
-  const yTicks = [min, (min + max) / 2, max];
+  const allInts = values.every((v) => Number.isInteger(v));
+  const mid = allInts ? Math.round((min + max) / 2) : (min + max) / 2;
+  const yTicks = [...new Set([min, mid, max])];
+  const fmtTick = (t: number) =>
+    Number.isInteger(t) ? String(t) : t >= 100 ? t.toFixed(0) : t >= 1 ? t.toFixed(1) : t.toFixed(4);
 
   return (
     <svg
@@ -44,7 +48,7 @@ export default function LineChart({ values, color = "#FFD400", height = 200, yLa
       <line x1={PAD_L} y1={H - PAD_B} x2={W - 8} y2={H - PAD_B} stroke="#F2F2F2" strokeWidth="1" strokeDasharray="1 3" />
       {yTicks.map((t) => (
         <text key={t} x={PAD_L - 6} y={y(t) + 4} fontSize="12" fill="#F2F2F2" textAnchor="end">
-          {Number.isInteger(t) ? t : t.toFixed(4)}
+          {fmtTick(t)}
         </text>
       ))}
       {xStart && (
