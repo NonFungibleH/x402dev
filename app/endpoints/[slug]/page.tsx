@@ -30,6 +30,9 @@ export default async function EndpointPage({ params }: { params: Promise<{ slug:
   const explorer = e.chain === "solana" ? `https://solscan.io/account/${e.payTo}` : `https://basescan.org/address/${e.payTo}`;
   const thirtyAgo = new Date(Date.now() - 29 * 86400000).toISOString();
   const today = new Date().toISOString();
+  const labels30 = Array.from({ length: 30 }, (_, i) =>
+    ttShortDate(new Date(Date.now() - (29 - i) * 86400000).toISOString())
+  );
 
   return (
     <Page p={pNumber(slug)}>
@@ -54,6 +57,8 @@ export default async function EndpointPage({ params }: { params: Promise<{ slug:
       <h2 className="bar-h mb-2 mt-4">Latency — 30 days (median ms)</h2>
       <LineChart
         values={e.latencySeries}
+        labels={labels30}
+        unit="MS"
         color="var(--tt-cyan, #00E5E5)"
         height={160}
         title={`${e.name} median latency, last 30 days`}
@@ -68,6 +73,8 @@ export default async function EndpointPage({ params }: { params: Promise<{ slug:
           </h2>
           <LineChart
             values={e.priceSeries.map((p) => p.price)}
+            labels={e.priceSeries.map((p) => ttShortDate(p.day))}
+            unit="USDC"
             height={160}
             title={`${e.name} price history in USDC`}
             xStart={ttShortDate(e.priceSeries[0].day)}

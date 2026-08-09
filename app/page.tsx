@@ -10,6 +10,9 @@ export default function Home() {
   const events = getEvents(20);
   const thirtyAgo = new Date(Date.now() - 29 * 86400000).toISOString();
   const today = new Date().toISOString();
+  const labels30 = Array.from({ length: 30 }, (_, i) =>
+    ttShortDate(new Date(Date.now() - (29 - i) * 86400000).toISOString())
+  );
 
   return (
     <Page p="P100">
@@ -71,6 +74,8 @@ export default function Home() {
       <h2 className="bar-h mb-2 mt-4">Live endpoints — 30 days</h2>
       <LineChart
         values={stats.liveSeries30d}
+        labels={labels30}
+        unit="LIVE"
         title="Live x402 endpoints over the last 30 days"
         xStart={ttShortDate(thirtyAgo)}
         xEnd={ttShortDate(today)}

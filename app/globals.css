@@ -12,16 +12,16 @@
   --tt-blue:    #1F3BFF;
 }
 
-/* STANDARD mode: same bones, fintech-terminal palette. Toggled via data-theme on <html>. */
+/* STANDARD mode: light, modern fintech. Toggled via data-theme on <html>. */
 :root[data-theme="std"] {
-  --tt-black:   #0E1116;
-  --tt-white:   #E6EDF3;
-  --tt-yellow:  #79C0FF;
-  --tt-cyan:    #58A6FF;
-  --tt-green:   #3FB950;
-  --tt-red:     #F85149;
-  --tt-magenta: #BC8CFF;
-  --tt-blue:    #1F6FEB;
+  --tt-black:   #FFFFFF;
+  --tt-white:   #0F172A;
+  --tt-yellow:  #1D4ED8;
+  --tt-cyan:    #2563EB;
+  --tt-green:   #15803D;
+  --tt-red:     #DC2626;
+  --tt-magenta: #9333EA;
+  --tt-blue:    #2563EB;
 }
 
 @theme inline {
@@ -121,8 +121,8 @@ a.quiet-link:hover {
   padding: 4px 8px;
 }
 :root[data-theme="std"] .bar-h {
-  background: #161B22;
-  color: var(--tt-white);
+  background: #F1F5F9;
+  color: #0F172A;
   border-left: 3px solid var(--tt-blue);
 }
 :root[data-theme="std"] .dh {
@@ -130,8 +130,15 @@ a.quiet-link:hover {
   font-weight: 600;
   font-size: 2em;
   letter-spacing: -0.02em;
+  color: #0F172A;
 }
 :root[data-theme="std"] .mosaic { display: none; }
+:root[data-theme="std"] table.tt th,
+:root[data-theme="std"] table.tt th button { color: #FFFFFF; }
+:root[data-theme="std"] table.tt th.sorted button { text-decoration: underline; }
+:root[data-theme="std"] .rule { border-color: #E2E8F0; }
+:root[data-theme="std"] pre.payload { background: #F1F5F9; color: #0F172A; }
+:root[data-theme="std"] .leader-row .dots { border-color: #CBD5E1; }
 
 /* P100 mosaic wordmark cluster */
 .mosaic {
@@ -149,7 +156,7 @@ a.quiet-link:hover {
   padding: 2px 12px;
 }
 :root[data-theme="std"] .headline-bar {
-  background: #161B22;
+  background: #F1F5F9;
   border-left: 3px solid var(--tt-blue);
 }
 
