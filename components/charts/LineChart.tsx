@@ -11,7 +11,7 @@ interface Props {
   title: string;
 }
 
-export default function LineChart({ values, color = "#FFD400", height = 200, yLabel, xStart, xEnd, title }: Props) {
+export default function LineChart({ values, color = "var(--tt-yellow, #FFD400)", height = 200, yLabel, xStart, xEnd, title }: Props) {
   const W = 1048;
   const H = height;
   const PAD_L = 64;
@@ -44,21 +44,21 @@ export default function LineChart({ values, color = "#FFD400", height = 200, yLa
     >
       <title>{title}</title>
       {/* axes: 1px dotted white */}
-      <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={H - PAD_B} stroke="#F2F2F2" strokeWidth="1" strokeDasharray="1 3" />
-      <line x1={PAD_L} y1={H - PAD_B} x2={W - 8} y2={H - PAD_B} stroke="#F2F2F2" strokeWidth="1" strokeDasharray="1 3" />
+      <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={H - PAD_B} stroke="var(--tt-white, #F2F2F2)" strokeWidth="1" strokeDasharray="1 3" />
+      <line x1={PAD_L} y1={H - PAD_B} x2={W - 8} y2={H - PAD_B} stroke="var(--tt-white, #F2F2F2)" strokeWidth="1" strokeDasharray="1 3" />
       {yTicks.map((t) => (
-        <text key={t} x={PAD_L - 6} y={y(t) + 4} fontSize="12" fill="#F2F2F2" textAnchor="end">
+        <text key={t} x={PAD_L - 6} y={y(t) + 4} fontSize="12" fill="var(--tt-white, #F2F2F2)" textAnchor="end">
           {fmtTick(t)}
         </text>
       ))}
       {xStart && (
-        <text x={PAD_L} y={H - 6} fontSize="12" fill="#F2F2F2">{xStart}</text>
+        <text x={PAD_L} y={H - 6} fontSize="12" fill="var(--tt-white, #F2F2F2)">{xStart}</text>
       )}
       {xEnd && (
-        <text x={W - 8} y={H - 6} fontSize="12" fill="#F2F2F2" textAnchor="end">{xEnd}</text>
+        <text x={W - 8} y={H - 6} fontSize="12" fill="var(--tt-white, #F2F2F2)" textAnchor="end">{xEnd}</text>
       )}
       {yLabel && (
-        <text x={PAD_L} y={PAD_T - 2} fontSize="12" fill="#F2F2F2">{yLabel}</text>
+        <text x={PAD_L} y={PAD_T - 2} fontSize="12" fill="var(--tt-white, #F2F2F2)">{yLabel}</text>
       )}
       <path d={path} fill="none" stroke={color} strokeWidth="2" />
     </svg>

@@ -6,7 +6,7 @@ export default function Sparkline({ values, width = 120, height = 24 }: { values
   const sorted = [...shown].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
   const latest = shown[shown.length - 1];
-  const color = latest >= median ? "#2BD94A" : "#FF3B30";
+  const color = latest >= median ? "var(--tt-green, #2BD94A)" : "var(--tt-red, #FF3B30)";
   const min = Math.min(...shown);
   const max = Math.max(...shown);
   const span = max - min || 1;

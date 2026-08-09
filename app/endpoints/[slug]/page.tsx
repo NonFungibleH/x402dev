@@ -54,7 +54,7 @@ export default async function EndpointPage({ params }: { params: Promise<{ slug:
       <h2 className="bar-h mb-2 mt-4">Latency — 30 days (median ms)</h2>
       <LineChart
         values={e.latencySeries}
-        color="#00E5E5"
+        color="var(--tt-cyan, #00E5E5)"
         height={160}
         title={`${e.name} median latency, last 30 days`}
         xStart={ttShortDate(thirtyAgo)}

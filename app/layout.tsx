@@ -24,7 +24,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${plex.variable} ${vt323.variable}`}>
+    <html lang="en" className={`${plex.variable} ${vt323.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(localStorage.getItem('x402-theme')==='std'){document.documentElement.dataset.theme='std'}}catch(e){}})()",
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

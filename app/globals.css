@@ -12,6 +12,18 @@
   --tt-blue:    #1F3BFF;
 }
 
+/* STANDARD mode: same bones, fintech-terminal palette. Toggled via data-theme on <html>. */
+:root[data-theme="std"] {
+  --tt-black:   #0E1116;
+  --tt-white:   #E6EDF3;
+  --tt-yellow:  #79C0FF;
+  --tt-cyan:    #58A6FF;
+  --tt-green:   #3FB950;
+  --tt-red:     #F85149;
+  --tt-magenta: #BC8CFF;
+  --tt-blue:    #1F6FEB;
+}
+
 @theme inline {
   --color-tt-black:   var(--tt-black);
   --color-tt-white:   var(--tt-white);
@@ -107,6 +119,53 @@ a.quiet-link:hover {
   font-weight: 600;
   text-transform: uppercase;
   padding: 4px 8px;
+}
+:root[data-theme="std"] .bar-h {
+  background: #161B22;
+  color: var(--tt-white);
+  border-left: 3px solid var(--tt-blue);
+}
+:root[data-theme="std"] .dh {
+  font-family: var(--font-plex), monospace;
+  font-weight: 600;
+  font-size: 2em;
+  letter-spacing: -0.02em;
+}
+:root[data-theme="std"] .mosaic { display: none; }
+
+/* P100 mosaic wordmark cluster */
+.mosaic {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 14px);
+  grid-auto-rows: 14px;
+  gap: 2px;
+  vertical-align: baseline;
+}
+.mosaic i { display: block; }
+
+/* headline: double-height on solid blue */
+.headline-bar {
+  background: var(--tt-blue);
+  padding: 2px 12px;
+}
+:root[data-theme="std"] .headline-bar {
+  background: #161B22;
+  border-left: 3px solid var(--tt-blue);
+}
+
+/* index list dot leaders */
+.leader-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  height: 32px;
+  align-items: center;
+}
+.leader-row .dots {
+  flex: 1;
+  border-bottom: 2px dotted var(--tt-white);
+  height: 0.55em;
+  min-width: 24px;
 }
 
 /* Fastext footer: the four coloured remote-button links */
