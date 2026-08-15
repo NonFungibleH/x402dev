@@ -4,7 +4,6 @@ import Page from "@/components/Page";
 import Changelog from "@/components/Changelog";
 import StatusGlyph from "@/components/StatusGlyph";
 import LineChart from "@/components/charts/LineChart";
-import MosaicChart from "@/components/charts/MosaicChart";
 import Sparkline from "@/components/charts/Sparkline";
 import { getEndpoint, getEndpoints, getEventsFor, pNumber } from "@/lib/data";
 import { ttShortDate, usdc } from "@/lib/format";
@@ -47,7 +46,7 @@ export default async function EndpointPage({ params }: { params: Promise<{ slug:
         <span className="uppercase text-tt-white">Net: {e.chain}</span>
         <span className="text-tt-white">First seen {ttShortDate(e.firstSeen)}</span>
         <span className="text-tt-white">Uptime 30d {e.uptime30d.toFixed(1)}%</span>
-        <span className="std-only"><Sparkline values={e.uptimeSeries} /></span>
+        <Sparkline values={e.uptimeSeries} />
       </p>
       <p className="text-tt-white pb-1">{e.description}</p>
       <p className="pb-2">
@@ -56,63 +55,36 @@ export default async function EndpointPage({ params }: { params: Promise<{ slug:
       </p>
 
       <h2 className="bar-h mb-2 mt-4">Latency — 30 days (median ms)</h2>
-      <div className="std-only">
-        <LineChart
-          values={e.latencySeries}
-          labels={labels30}
-          unit="MS"
-          color="var(--tt-cyan, #00E5E5)"
-          height={160}
-          title={`${e.name} median latency, last 30 days`}
-          xStart={ttShortDate(thirtyAgo)}
-          xEnd={ttShortDate(today)}
-        />
-      </div>
-      <div className="cf-only">
-        <MosaicChart
-          values={e.latencySeries}
-          labels={labels30}
-          unit="MS"
-          cyan
-          rows={5}
-          title={`${e.name} median latency, last 30 days`}
-          xStart={ttShortDate(thirtyAgo)}
-          xEnd={ttShortDate(today)}
-        />
-      </div>
+      <LineChart
+        values={e.latencySeries}
+        labels={labels30}
+        unit="MS"
+        color="var(--tt-cyan, #00E5E5)"
+        height={160}
+        title={`${e.name} median latency, last 30 days`}
+        xStart={ttShortDate(thirtyAgo)}
+        xEnd={ttShortDate(today)}
+      />
 
       {e.priceSeries.length > 1 && (
         <>
           <h2 className="bar-h mt-6 mb-2">
             Price history (USDC, currently {usdc(e.priceUsdc)})
           </h2>
-          <div className="std-only">
-            <LineChart
-              values={e.priceSeries.map((p) => p.price)}
-              labels={e.priceSeries.map((p) => ttShortDate(p.day))}
-              unit="USDC"
-              height={160}
-              title={`${e.name} price history in USDC`}
-              xStart={ttShortDate(e.priceSeries[0].day)}
-              xEnd={ttShortDate(e.priceSeries[e.priceSeries.length - 1].day)}
-            />
-          </div>
-          <div className="cf-only">
-            <MosaicChart
-              values={e.priceSeries.map((p) => p.price)}
-              labels={e.priceSeries.map((p) => ttShortDate(p.day))}
-              unit="USDC"
-              rows={5}
-              title={`${e.name} price history in USDC`}
-              xStart={ttShortDate(e.priceSeries[0].day)}
-              xEnd={ttShortDate(e.priceSeries[e.priceSeries.length - 1].day)}
-            />
-          </div>
+          <LineChart
+            values={e.priceSeries.map((p) => p.price)}
+            labels={e.priceSeries.map((p) => ttShortDate(p.day))}
+            unit="USDC"
+            height={160}
+            title={`${e.name} price history in USDC`}
+            xStart={ttShortDate(e.priceSeries[0].day)}
+            xEnd={ttShortDate(e.priceSeries[e.priceSeries.length - 1].day)}
+          />
         </>
       )}
 
       <h2 className="bar-h mb-2 mt-6">Changelog</h2>
-      {events.length ? <div className="cf-clip"><Changelog events={events} linkRows={false} /></div> : (
+      {events.length ? <Changelog events={events} linkRows={false} /> : (
         <p className="uppercase text-tt-white">No events recorded</p>
       )}
 
