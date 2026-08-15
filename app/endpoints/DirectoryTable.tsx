@@ -54,7 +54,7 @@ export default function DirectoryTable({ rows }: { rows: Row[] }) {
   return (
     <>
       <div className="find-line pb-4">
-        <label htmlFor="find">FIND:</label>
+        <label htmlFor="find" className="uppercase">Find:</label>
         <input
           id="find"
           value={q}
@@ -62,7 +62,7 @@ export default function DirectoryTable({ rows }: { rows: Row[] }) {
           spellCheck={false}
           autoComplete="off"
         />
-        <span aria-hidden className="text-tt-cyan">▊</span>
+        <span aria-hidden className="find-cursor text-tt-cyan">▊</span>
       </div>
       <div className="table-scroll">
         <table className="tt">

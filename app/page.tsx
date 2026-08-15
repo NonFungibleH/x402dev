@@ -52,17 +52,17 @@ export default function Home() {
 
       {/* stat block */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-3 pb-1">
-        <div>
+        <div className="stat-card">
           <div className="uppercase text-tt-cyan font-semibold">Live endpoints</div>
           <div className="dh">
             {stats.liveCount} / {stats.totalListed}
           </div>
         </div>
-        <div>
+        <div className="stat-card">
           <div className="uppercase text-tt-cyan font-semibold">Median price / call</div>
           <div className="dh">{usdc(stats.medianPriceUsdc)} <span className="text-[0.5em]">USDC</span></div>
         </div>
-        <div>
+        <div className="stat-card">
           <div className="uppercase text-tt-cyan font-semibold">New / delisted 7d</div>
           <div className="dh">
             <span className="text-tt-green">+{stats.newThisWeek}</span>{" "}

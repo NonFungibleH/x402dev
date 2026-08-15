@@ -10,8 +10,9 @@ const MAP: Record<Status, { glyph: string; label: string; cls: string }> = {
 export default function StatusGlyph({ status }: { status: Status }) {
   const m = MAP[status];
   return (
-    <span className={`${m.cls} font-semibold whitespace-nowrap`}>
-      {m.glyph} {m.label}
+    <span className={`status-glyph ${m.cls} font-semibold whitespace-nowrap`}>
+      <span className="glyph">{m.glyph}&nbsp;</span>
+      {m.label}
     </span>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, VT323 } from "next/font/google";
+import { IBM_Plex_Mono, Instrument_Sans, VT323 } from "next/font/google";
 import "./globals.css";
 
 const plex = IBM_Plex_Mono({
@@ -16,6 +16,13 @@ const vt323 = VT323({
   display: "swap",
 });
 
+const sans = Instrument_Sans({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-sans-std",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "x402.dev — The Agent Economy",
   description:
@@ -24,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${plex.variable} ${vt323.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${plex.variable} ${vt323.variable} ${sans.variable}`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

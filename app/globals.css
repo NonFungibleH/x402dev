@@ -12,16 +12,19 @@
   --tt-blue:    #1F3BFF;
 }
 
-/* STANDARD mode: light, modern fintech. Toggled via data-theme on <html>. */
+/* STANDARD mode: light, modern product site (Stripe-adjacent). Toggled via data-theme on <html>. */
 :root[data-theme="std"] {
   --tt-black:   #FFFFFF;
-  --tt-white:   #0F172A;
-  --tt-yellow:  #1D4ED8;
-  --tt-cyan:    #2563EB;
-  --tt-green:   #15803D;
-  --tt-red:     #DC2626;
-  --tt-magenta: #9333EA;
-  --tt-blue:    #2563EB;
+  --tt-white:   #0A2540;
+  --tt-yellow:  #635BFF;
+  --tt-cyan:    #0570DE;
+  --tt-green:   #188433;
+  --tt-red:     #DF1B41;
+  --tt-magenta: #8D5CF6;
+  --tt-blue:    #635BFF;
+  --std-muted:  #425466;
+  --std-line:   #E6EBF1;
+  --std-soft:   #F6F9FC;
 }
 
 @theme inline {
@@ -37,8 +40,10 @@
   --font-vt: var(--font-vt323);
 }
 
-/* teletext has no curves — hard guard */
-*, *::before, *::after {
+/* teletext has no curves — hard guard (ceefax mode only; std mode is a modern product skin) */
+:root:not([data-theme="std"]) *,
+:root:not([data-theme="std"]) *::before,
+:root:not([data-theme="std"]) *::after {
   border-radius: 0 !important;
   box-shadow: none !important;
 }
@@ -120,25 +125,6 @@ a.quiet-link:hover {
   text-transform: uppercase;
   padding: 4px 8px;
 }
-:root[data-theme="std"] .bar-h {
-  background: #F1F5F9;
-  color: #0F172A;
-  border-left: 3px solid var(--tt-blue);
-}
-:root[data-theme="std"] .dh {
-  font-family: var(--font-plex), monospace;
-  font-weight: 600;
-  font-size: 2em;
-  letter-spacing: -0.02em;
-  color: #0F172A;
-}
-:root[data-theme="std"] .mosaic { display: none; }
-:root[data-theme="std"] table.tt th,
-:root[data-theme="std"] table.tt th button { color: #FFFFFF; }
-:root[data-theme="std"] table.tt th.sorted button { text-decoration: underline; }
-:root[data-theme="std"] .rule { border-color: #E2E8F0; }
-:root[data-theme="std"] pre.payload { background: #F1F5F9; color: #0F172A; }
-:root[data-theme="std"] .leader-row .dots { border-color: #CBD5E1; }
 
 /* P100 mosaic wordmark cluster */
 .mosaic {
@@ -154,10 +140,6 @@ a.quiet-link:hover {
 .headline-bar {
   background: var(--tt-blue);
   padding: 2px 12px;
-}
-:root[data-theme="std"] .headline-bar {
-  background: #F1F5F9;
-  border-left: 3px solid var(--tt-blue);
 }
 
 /* index list dot leaders */
@@ -306,3 +288,134 @@ details.payload-toggle[open] > summary::before { content: "\2212 "; }
 @media (max-width: 379px) {
   .masthead-date { display: none; }
 }
+
+/* ————— STANDARD MODE: modern product-site layer ————— */
+:root[data-theme="std"] body {
+  font-family: var(--font-sans-std), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+:root[data-theme="std"] .uppercase {
+  text-transform: none;
+  letter-spacing: 0;
+}
+:root[data-theme="std"] .mosaic { display: none; }
+
+/* type */
+:root[data-theme="std"] .dh {
+  font-family: var(--font-sans-std), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 2.2em;
+  letter-spacing: -0.02em;
+  color: var(--tt-white);
+}
+:root[data-theme="std"] .brand { text-transform: lowercase; }
+:root[data-theme="std"] .clock { font-family: var(--font-plex), monospace; font-size: 13px; }
+
+/* masthead: clean white nav with a gradient hairline */
+:root[data-theme="std"] header { border-bottom: 1px solid var(--std-line); }
+:root[data-theme="std"] .masthead-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #635BFF, #00D4FF 50%, #635BFF);
+}
+
+/* links: no invert hover */
+:root[data-theme="std"] a:hover {
+  background: transparent;
+  color: var(--tt-cyan);
+  text-decoration: underline;
+}
+:root[data-theme="std"] nav a { color: var(--std-muted); font-weight: 500; }
+:root[data-theme="std"] nav a:hover { color: var(--tt-white); text-decoration: none; }
+
+/* section headings: plain sans headings, no bars */
+:root[data-theme="std"] .bar-h {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--tt-white);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+:root[data-theme="std"] .headline-bar {
+  background: none;
+  padding: 0;
+  color: var(--tt-white);
+}
+:root[data-theme="std"] .rule { border-color: var(--std-line); }
+
+/* stat cards */
+:root[data-theme="std"] .stat-card {
+  border: 1px solid var(--std-line);
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 5px -1px rgba(50, 50, 93, 0.06), 0 1px 3px -1px rgba(0, 0, 0, 0.04);
+  background: var(--tt-black);
+}
+
+/* tables: quiet headers, hairline rows, hover highlight */
+:root[data-theme="std"] table.tt th {
+  background: transparent;
+  color: var(--std-muted);
+  text-transform: none;
+  font-weight: 500;
+  font-size: 13px;
+  border-bottom: 1px solid var(--std-line);
+}
+:root[data-theme="std"] table.tt th button { text-transform: none; font-weight: 500; }
+:root[data-theme="std"] table.tt th.sorted button { color: var(--tt-yellow); }
+:root[data-theme="std"] table.tt td {
+  height: 44px;
+  border-bottom: 1px solid var(--std-soft);
+}
+:root[data-theme="std"] table.tt td.num { font-family: var(--font-plex), monospace; font-size: 13px; }
+:root[data-theme="std"] table.tt tbody tr:hover { background: var(--std-soft); }
+
+/* find input */
+:root[data-theme="std"] .find-line label { color: var(--std-muted); font-weight: 500; }
+:root[data-theme="std"] .find-line input {
+  border: 1px solid #D9E1EC;
+  border-radius: 8px;
+  height: 36px;
+  padding: 0 12px;
+  caret-color: var(--tt-yellow);
+}
+:root[data-theme="std"] .find-line input:focus-visible {
+  outline: 2px solid var(--tt-yellow);
+  outline-offset: 0;
+  border-color: var(--tt-yellow);
+}
+:root[data-theme="std"] .find-cursor { display: none; }
+
+/* status pills */
+:root[data-theme="std"] .status-glyph {
+  display: inline-flex;
+  align-items: center;
+  background: var(--std-soft);
+  border: 1px solid var(--std-line);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-size: 12px;
+}
+:root[data-theme="std"] .status-glyph .glyph { display: none; }
+
+/* fastext row: quiet footer links */
+:root[data-theme="std"] .fastext a { color: var(--std-muted); font-weight: 500; }
+:root[data-theme="std"] .fastext a:hover { background: transparent; color: var(--tt-white); }
+
+/* payload + index list */
+:root[data-theme="std"] pre.payload {
+  background: var(--std-soft);
+  color: var(--tt-white);
+  border: 1px solid var(--std-line);
+  border-radius: 8px;
+}
+:root[data-theme="std"] .leader-row .dots { border-color: var(--std-line); }
+:root[data-theme="std"] footer { color: var(--std-muted); }
+
+:root[data-theme="std"] .bar-h,
+:root[data-theme="std"] .fastext,
+:root[data-theme="std"] .longform h2 { text-transform: none; letter-spacing: 0; }
+:root[data-theme="std"] .longform h2 { color: var(--tt-white); font-size: 18px; }

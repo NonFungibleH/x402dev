@@ -37,10 +37,10 @@ export default function Masthead({ p, demo }: { p: string; demo?: boolean }) {
     <header>
       <div className="container-tt">
         <div className="flex items-baseline gap-6 py-2 font-semibold uppercase whitespace-nowrap overflow-hidden">
-          <span className="text-tt-white">X402.DEV</span>
+          <span className="brand text-tt-white">X402.DEV</span>
           <span className="text-tt-cyan">{p}</span>
           <span className="masthead-date text-tt-white">{now?.date ?? " "}</span>
-          <span className="text-tt-yellow" suppressHydrationWarning>
+          <span className="clock text-tt-yellow" suppressHydrationWarning>
             {now?.time ?? "--:--/--"} <span className="text-[0.8em]">UTC</span>
           </span>
           <span className="ml-auto flex items-baseline gap-6">

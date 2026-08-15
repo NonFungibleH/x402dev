@@ -3,11 +3,11 @@ import Masthead from "./Masthead";
 import { IS_DEMO } from "@/lib/data";
 
 const NAV = [
-  { p: "P100", label: "INDEX", href: "/" },
-  { p: "P200", label: "ENDPOINTS", href: "/endpoints" },
-  { p: "P300", label: "REPORTS", href: "/reports" },
-  { p: "P310", label: "METHOD", href: "/methodology" },
-  { p: "P404", label: "GRAVEYARD", href: "/graveyard" },
+  { p: "P100", label: "Index", href: "/" },
+  { p: "P200", label: "Endpoints", href: "/endpoints" },
+  { p: "P300", label: "Reports", href: "/reports" },
+  { p: "P310", label: "Method", href: "/methodology" },
+  { p: "P404", label: "Graveyard", href: "/graveyard" },
 ];
 
 export default function Page({ p, children }: { p: string; children: React.ReactNode }) {
