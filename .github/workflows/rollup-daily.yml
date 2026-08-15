@@ -1,0 +1,27 @@
+name: rollup-daily
+on:
+  schedule:
+    - cron: "45 0 * * *"
+  workflow_dispatch:
+    inputs:
+      day:
+        description: "Day to roll up (YYYY-MM-DD, default yesterday)"
+        required: false
+
+jobs:
+  rollup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Roll up daily stats
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ROLLUP_DAY: ${{ inputs.day }}
+        run: npx tsx scripts/rollup-daily.ts

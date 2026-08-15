@@ -1,0 +1,31 @@
+name: probe-endpoints
+on:
+  schedule:
+    - cron: "30 */6 * * *" # 30 min after each crawl; the 00:30 run is the daily full sweep
+  workflow_dispatch:
+    inputs:
+      probe_all:
+        description: "Probe everything (incl. unresponsive + delisted)"
+        type: boolean
+        default: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Probe endpoints
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ "$(date -u +%H)" = "00" ] || [ "${{ inputs.probe_all }}" = "true" ]; then
+            export PROBE_ALL=1
+          fi
+          npx tsx scripts/probe-endpoints.ts
