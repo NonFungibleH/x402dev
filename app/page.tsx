@@ -2,12 +2,13 @@ import Link from "next/link";
 import Page from "@/components/Page";
 import Changelog from "@/components/Changelog";
 import LineChart from "@/components/charts/LineChart";
+import MosaicChart from "@/components/charts/MosaicChart";
 import { getEvents, getStats } from "@/lib/data";
 import { ttShortDate, usd, usdc } from "@/lib/format";
 
 export default function Home() {
   const stats = getStats();
-  const events = getEvents(20);
+  const events = getEvents(12);
   const thirtyAgo = new Date(Date.now() - 29 * 86400000).toISOString();
   const today = new Date().toISOString();
   const labels30 = Array.from({ length: 30 }, (_, i) =>
@@ -25,7 +26,7 @@ export default function Home() {
           <i style={{ background: "var(--tt-magenta)" }} />
           <i style={{ background: "var(--tt-blue)" }} />
         </span>
-        <span className="dh text-[3em] leading-none" aria-hidden>
+        <span className="dh" aria-hidden>
           X402.DEV
         </span>
       </div>
@@ -37,14 +38,14 @@ export default function Home() {
       {/* headline number block */}
       <div className="pb-2">
         <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
-          <span className="uppercase text-tt-cyan font-semibold w-64">Real agent volume</span>
+          <span className="hero-label uppercase text-tt-cyan font-semibold">Real agent volume</span>
           <span className="dh">$—.—</span>
           <span className="text-tt-magenta uppercase font-semibold">Coming soon</span>
         </div>
         <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 pt-1">
-          <span className="uppercase text-tt-cyan font-semibold w-64">Raw reported volume</span>
-          <span className="strike-red text-tt-white text-[1.4em]">{usd(stats.rawReportedVolume)}</span>
-          <span className="text-tt-white text-[12px] uppercase">Source: reported listings, unverified</span>
+          <span className="hero-label uppercase text-tt-cyan font-semibold">Raw reported volume</span>
+          <span className="strike-red hero-raw text-tt-white">{usd(stats.rawReportedVolume)}</span>
+          <span className="fine text-tt-white uppercase">Source: reported listings, unverified</span>
         </div>
       </div>
 
@@ -72,17 +73,31 @@ export default function Home() {
       </div>
 
       <h2 className="bar-h mb-2 mt-4">Live endpoints — 30 days</h2>
-      <LineChart
-        values={stats.liveSeries30d}
-        labels={labels30}
-        unit="LIVE"
-        title="Live x402 endpoints over the last 30 days"
-        xStart={ttShortDate(thirtyAgo)}
-        xEnd={ttShortDate(today)}
-      />
+      <div className="std-only">
+        <LineChart
+          values={stats.liveSeries30d}
+          labels={labels30}
+          unit="LIVE"
+          title="Live x402 endpoints over the last 30 days"
+          xStart={ttShortDate(thirtyAgo)}
+          xEnd={ttShortDate(today)}
+        />
+      </div>
+      <div className="cf-only">
+        <MosaicChart
+          values={stats.liveSeries30d}
+          labels={labels30}
+          unit="LIVE"
+          title="Live x402 endpoints over the last 30 days"
+          xStart={ttShortDate(thirtyAgo)}
+          xEnd={ttShortDate(today)}
+        />
+      </div>
 
       <h2 className="bar-h mb-2 mt-4">Latest</h2>
-      <Changelog events={events} />
+      <div className="cf-clip">
+        <Changelog events={events} />
+      </div>
 
       <h2 className="bar-h mb-2 mt-4">Index</h2>
       <ul className="max-w-[560px]">

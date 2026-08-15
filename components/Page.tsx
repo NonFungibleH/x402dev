@@ -14,7 +14,7 @@ export default function Page({ p, children }: { p: string; children: React.React
   return (
     <div className="min-h-screen flex flex-col">
       <Masthead p={p} demo={IS_DEMO} />
-      <nav className="container-tt w-full py-2 uppercase font-semibold">
+      <nav className="std-only container-tt w-full py-2 uppercase font-semibold">
         <ul className="flex flex-wrap gap-x-3 gap-y-1">
           {NAV.map((n, i) => (
             <li key={n.p} className="whitespace-nowrap">
