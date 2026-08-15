@@ -440,8 +440,7 @@ details.payload-toggle[open] > summary::before { content: "\2212 "; }
 /* the 40-column frame: whole page pinned to the character grid */
 :root:not([data-theme="std"]) body {
   font-family: var(--font-vt323), monospace;
-  /* a TV scales its characters to the tube: 40 columns ≈ 90vw at any size */
-  font-size: max(16px, 4.4vw);
+  font-size: clamp(16px, 2.1vw, 28px);
   line-height: 1.25;
 }
 :root:not([data-theme="std"]) .container-tt {
