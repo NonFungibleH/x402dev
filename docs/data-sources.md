@@ -77,7 +77,65 @@ each crawl.
   Bazaar coverage (15k resources) makes additional sources a Phase-2 question rather than a
   launch need.
 
-## Probe-scale consequences (decided 2026-08-15)
+## Re-verification 2026-10-06/07
+
+The Bazaar more than doubled: **35,119 listings across 2,135 hosts** (from 15,070 / 1,548
+in August). Growth is concentrated: one host (market.datapackvibe.com) alone lists 13,773
+(39%). 34,931 listings are x402 v2.
+
+**Multi-chain is now the norm.** 9,893 listings accept more than one network; 25+ networks
+appear. Listing counts by network (any accept): Base 34,628 · Solana 7,136 · Polygon 4,139 ·
+Arbitrum 2,507 · Optimism 1,613 · Arc (eip155:5042) 1,111 · Monad 891 · Robinhood Chain 727 ·
+Avalanche 680 · Sei 658 · XRPL 638 · Celo 610 · Stellar 605 · Algorand 480 · World Chain 320 ·
+X Layer 125 · BNB Chain 115 · HyperEVM 82 · Ethereum 75 · Noble 49 (plus testnets and a tail
+of rarer networks).
+
+**Stablecoin decimals were confirmed from the data, not assumed:** for listings quoting the
+same service on several chains, the amount ratio against Base USDC gives each token's
+decimals. All USDC deployments are 6dp, including Arc's 0x3600…0000; Robinhood Chain prices
+in USDG (6dp); BNB Chain stablecoins (USD1, United Stables, BSC-USDC, BSC-USDT) are 18dp;
+Stellar USDC is 7dp. The table lives in `lib/x402/parse.ts` (`USD_ASSETS`). EURC, wSOL, XRP
+and unrecognised tokens get no USD price.
+
+**v2 transport:** 252 of 262 sampled 402 responses also carry the payload in a base64
+`PAYMENT-REQUIRED` header; some send it only there. The parser reads the body first and
+falls back to the header.
+
+**HTTP method matters.** In a 400-endpoint sample probed with GET, 60 (15%) returned 405 —
+all were listings that declare `POST` in `extensions.bazaar.info.input.method`. Probing with
+the listed method (empty JSON body) fixed it: in a 938-endpoint dry run, 896 returned 402
+(895 parsed) and only 1 returned 405.
+
+**Dead listings.** Sampling one endpoint per host, 53 of 400 hosts (13%) answered 404 —
+listed but gone. Per-listing the rate is lower because large hosts dominate the count; the
+site should report both.
+
+## Storage model (revised 2026-10-07)
+
+Per-probe rows don't fit the free tier at 35k endpoints, so the schema stores:
+
+- **`probes`: one row per state change** (alive, status code, accepts hash or price
+  differs from the cached last state). Unchanged probes write nothing there.
+- **`daily_stats`: one row per endpoint per day** with probe counters
+  (`probes_total`, `probes_alive`, latency sum/count). Uptime and average latency are
+  exact; per-probe latency for unchanged probes is not kept.
+- Together these reconstruct every endpoint's state history losslessly.
+
+Estimated growth ≈ 4–5 MB/day (dominated by `daily_stats`), so the 500 MB free tier lasts
+roughly 3–4 months. Before then: archive old `daily_stats` to a public compressed dump, or
+move to Supabase Pro.
+
+## Probe scheduling (revised 2026-10-07)
+
+- 4 parallel jobs, **sharded by host** so the per-host limit holds globally.
+- At most 2 concurrent requests per host, 32 per job, 10s timeout.
+- At most 400 endpoints per host per run, oldest-probed first — large hosts rotate
+  through their listings instead of being hammered every 6 hours.
+- Responsive endpoints every 6h; unresponsive and delisted ones in the 00:30 UTC full sweep.
+- Hard guard: never the same endpoint twice within 15 minutes.
+- Dry-run locally against a listings file: `PROBE_DRY_FILE=listings.json npx tsx scripts/probe-endpoints.ts`
+
+## Original scale notes (2026-08-15, superseded above)
 
 The build brief assumed a few hundred endpoints; reality is 15k listings / 1.5k hosts:
 

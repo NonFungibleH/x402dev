@@ -1,164 +1,204 @@
-// Probe endpoints: free GET, no payment header. 402 = protocol working.
-// Tiered cadence: responsive endpoints every 6h; unresponsive ones (and delisted
-// zombie-watch) only on the daily full sweep (PROBE_ALL=1).
-// Hard politeness guard: never probe the same endpoint more than once per 15 min.
+// Probe endpoints with a free request using the listing's HTTP method and no
+// payment header. HTTP 402 with a parseable payload = the protocol working.
+// Sharded by host (SHARD / SHARDS) so the per-host concurrency limit holds across
+// parallel jobs; big hosts rotate via the per-host cap in selectDue.
 
-import { parse402Body, type ParsedAccept } from "../lib/x402/parse";
-import { transition } from "../lib/x402/status";
+import { readFileSync } from "node:fs";
+import { normalizeUrl } from "../lib/x402/normalize";
+import { parse402Response } from "../lib/x402/parse";
+import { assess, selectDue, shardOf, type EpState, type Observation } from "../lib/x402/schedule";
 import { getDb, fail, allRows, chunks } from "./lib/db";
 
 const UA = "x402dev-monitor/1.0 (+https://x402.dev)";
-const TIMEOUT_MS = 10000;
-const CONCURRENCY = 25;
-const MIN_INTERVAL_MS = 15 * 60 * 1000;
+const TIMEOUT_MS = 10_000;
+const GLOBAL_CONCURRENCY = 32;
+const PER_HOST_CONCURRENCY = 2;
+const HOST_CAP = Number(process.env.HOST_CAP ?? 400);
+const SHARDS = Number(process.env.SHARDS ?? 1);
+const SHARD = Number(process.env.SHARD ?? 0);
 const PROBE_ALL = process.env.PROBE_ALL === "1";
+// PROBE_DRY_FILE=<bazaar listings json>: probe for real, write nothing (local testing)
+const DRY_FILE = process.env.PROBE_DRY_FILE;
 
-interface Ep {
-  id: string;
-  url: string;
-  delisted_at: string | null;
-  last_probe_at: string | null;
-  last_probe_alive: boolean | null;
-  prev_probe_alive: boolean | null;
-  last_accepts_hash: string | null;
-  last_price_usdc: number | null;
+type Ep = EpState & { http_method: string };
+
+interface Result extends Observation {
+  parsed: ReturnType<typeof parse402Response>;
 }
 
-interface ProbeResult {
-  alive: boolean;
-  status: number | null;
-  latency: number;
-  error: string | null;
-  parsed: { accept: ParsedAccept; acceptsHash: string; accepts: unknown[] } | null;
-}
-
-async function probe(url: string): Promise<ProbeResult> {
+async function probe(e: Ep): Promise<Result> {
   const start = Date.now();
+  const hasBody = e.http_method !== "GET" && e.http_method !== "DELETE";
   try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": UA, Accept: "application/json" },
+    const res = await fetch(e.url, {
+      method: e.http_method,
+      headers: {
+        "User-Agent": UA,
+        Accept: "application/json",
+        ...(hasBody ? { "Content-Type": "application/json" } : {}),
+      },
+      body: hasBody ? "{}" : undefined,
       redirect: "manual",
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    const latency = Date.now() - start;
+    const latencyMs = Date.now() - start;
     const s = res.status;
-    // 402 healthy; any response except 404/5xx counts as alive (see methodology)
-    const alive = s === 402 || (s < 500 && s !== 404);
-    let parsed: ProbeResult["parsed"] = null;
+    let parsed: Result["parsed"] = null;
     if (s === 402) {
-      try {
-        parsed = parse402Body(await res.json());
-      } catch {
-        /* unparseable 402 body — alive, but no payload data */
-      }
+      const text = await res.text().catch(() => "");
+      parsed = parse402Response(text, res.headers.get("payment-required") ?? res.headers.get("x-payment-required"));
+    } else {
+      res.body?.cancel().catch(() => {});
     }
-    return { alive, status: s, latency, error: null, parsed };
-  } catch (e) {
-    const latency = Date.now() - start;
-    const msg = e instanceof Error ? (e.name === "TimeoutError" ? "timeout" : e.message.slice(0, 120)) : "error";
-    return { alive: false, status: null, latency, error: msg, parsed: null };
+    // 402 healthy; any other response except 404/5xx means the server is up (see methodology)
+    const alive = s === 402 || (s < 500 && s !== 404);
+    return {
+      alive,
+      status: s,
+      latencyMs,
+      error: null,
+      hash: parsed?.acceptsHash ?? null,
+      priceUsd: parsed?.accept.priceUsd ?? null,
+      parsed,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? (err.name === "TimeoutError" ? "timeout" : err.message.slice(0, 120)) : "error";
+    return { alive: false, status: null, latencyMs: Date.now() - start, error: msg, hash: null, priceUsd: null, parsed: null };
   }
 }
 
-async function main() {
-  const db = getDb();
-  if (!db) return;
-
-  const all = await allRows<Ep>((from, to) =>
-    db
-      .from("endpoints")
-      .select("id,url,delisted_at,last_probe_at,last_probe_alive,prev_probe_alive,last_accepts_hash,last_price_usdc")
-      .range(from, to)
-  );
-
-  const cutoff = Date.now() - MIN_INTERVAL_MS;
-  const due = all.filter((e) => {
-    if (e.last_probe_at && new Date(e.last_probe_at).getTime() > cutoff) return false; // politeness
-    if (PROBE_ALL) return true; // daily sweep incl. delisted zombie-watch
-    if (e.delisted_at) return false;
-    return e.last_probe_alive !== false; // responsive or never probed
+// global pool with a per-host limit
+async function runAll(eps: Ep[], onResult: (e: Ep, r: Result) => void) {
+  const queue = [...eps];
+  const active = new Map<string, number>();
+  let running = 0;
+  await new Promise<void>((resolve) => {
+    const pump = () => {
+      if (queue.length === 0 && running === 0) return resolve();
+      for (let i = 0; i < queue.length && running < GLOBAL_CONCURRENCY; ) {
+        const e = queue[i];
+        if ((active.get(e.host) ?? 0) >= PER_HOST_CONCURRENCY) {
+          i++;
+          continue;
+        }
+        queue.splice(i, 1);
+        running++;
+        active.set(e.host, (active.get(e.host) ?? 0) + 1);
+        probe(e).then((r) => {
+          onResult(e, r);
+          running--;
+          active.set(e.host, (active.get(e.host) ?? 1) - 1);
+          pump();
+        });
+      }
+    };
+    pump();
   });
-  console.log(`probing ${due.length} of ${all.length} endpoints (PROBE_ALL=${PROBE_ALL})`);
-  if (due.length === 0) {
-    console.log("nothing due");
-    return;
+}
+
+function dryEndpoints(file: string): Ep[] {
+  type Item = { resource?: string; extensions?: { bazaar?: { info?: { input?: { method?: string } } } } };
+  const items: Item[] = JSON.parse(readFileSync(file, "utf8"));
+  const out = new Map<string, Ep>();
+  for (const it of items) {
+    if (!it.resource) continue;
+    let url: string;
+    try { url = normalizeUrl(it.resource); } catch { continue; }
+    const m = it.extensions?.bazaar?.info?.input?.method?.toUpperCase() ?? "GET";
+    out.set(url, {
+      id: url, url, host: new URL(url).host, http_method: m, delisted_at: null, last_probe_at: null,
+      last_probe_alive: null, prev_probe_alive: null, last_status_code: null, last_accepts_hash: null, last_price_usd: null,
+    });
   }
+  return [...out.values()];
+}
 
-  let done = 0;
-  const probeRows: Record<string, unknown>[] = [];
-  const epUpdates: Record<string, unknown>[] = [];
+async function main() {
+  const db = DRY_FILE ? null : getDb();
+  if (!db && !DRY_FILE) return;
+
+  const all: Ep[] = DRY_FILE
+    ? dryEndpoints(DRY_FILE)
+    : await allRows<Ep>((from, to) =>
+        db!
+          .from("endpoints")
+          .select("id,url,host,http_method,delisted_at,last_probe_at,last_probe_alive,prev_probe_alive,last_status_code,last_accepts_hash,last_price_usd")
+          .range(from, to)
+      );
+  const mine = all.filter((e) => shardOf(e.host, SHARDS) === SHARD);
+  const due = selectDue(mine, Date.now(), { probeAll: PROBE_ALL, hostCap: HOST_CAP, minIntervalMs: 15 * 60_000 }) as Ep[];
+  console.log(`shard ${SHARD}/${SHARDS}: probing ${due.length} of ${mine.length} endpoints (PROBE_ALL=${PROBE_ALL})`);
+  if (due.length === 0) return console.log("nothing due");
+
+  const changeRows: Record<string, unknown>[] = [];
+  const results: Record<string, unknown>[] = [];
   const events: { endpoint_id: string; kind: string; detail?: unknown }[] = [];
+  let done = 0;
+  let alive = 0;
 
-  for (const batch of chunks(due, CONCURRENCY)) {
-    const results = await Promise.all(batch.map((e) => probe(e.url)));
-    const now = new Date().toISOString();
-    for (let i = 0; i < batch.length; i++) {
-      const e = batch[i];
-      const r = results[i];
-      const acc = r.parsed?.accept ?? null;
-      const hash = r.parsed?.acceptsHash ?? null;
-      const hashChanged = hash !== null && hash !== e.last_accepts_hash;
-
-      probeRows.push({
+  await runAll(due, (e, r) => {
+    const at = new Date().toISOString();
+    const a = assess(e, r);
+    if (r.alive) alive++;
+    for (const ev of a.events) events.push({ endpoint_id: e.id, ...ev });
+    if (a.record) {
+      const acc = r.parsed?.accept;
+      changeRows.push({
         endpoint_id: e.id,
-        probed_at: now,
+        probed_at: at,
         alive: r.alive,
         status_code: r.status,
-        latency_ms: r.latency,
+        latency_ms: r.latencyMs,
         price_raw: acc?.priceRaw ?? null,
-        price_usdc: acc?.priceUsdc ?? null,
+        price_usd: acc?.priceUsd ?? null,
         asset: acc?.asset ?? null,
         network: acc?.network ?? null,
-        accepts_hash: hash,
-        accepts_json: hashChanged ? r.parsed?.accepts : null,
+        chains: r.parsed?.chains ?? null,
+        accepts_hash: r.hash,
+        accepts_json: r.hash && r.hash !== e.last_accepts_hash ? r.parsed?.accepts : null,
         error: r.error,
       });
-
-      // events
-      const history: boolean[] = [];
-      if (e.last_probe_alive !== null) history.push(e.last_probe_alive);
-      if (e.prev_probe_alive !== null) history.push(e.prev_probe_alive);
-      const t = transition(history, r.alive);
-      if (t) events.push({ endpoint_id: e.id, kind: t });
-      if (acc?.priceUsdc != null && e.last_price_usdc != null && acc.priceUsdc !== Number(e.last_price_usdc)) {
-        events.push({
-          endpoint_id: e.id,
-          kind: "price_change",
-          detail: { old: `${e.last_price_usdc} USDC`, new: `${acc.priceUsdc} USDC` },
-        });
-      } else if (hashChanged && e.last_accepts_hash !== null) {
-        events.push({ endpoint_id: e.id, kind: "schema_change" });
-      }
-
-      epUpdates.push({
-        id: e.id,
-        last_probe_at: now,
-        prev_probe_alive: e.last_probe_alive,
-        last_probe_alive: r.alive,
-        last_accepts_hash: hash ?? e.last_accepts_hash,
-        last_price_usdc: acc?.priceUsdc ?? e.last_price_usdc,
-      });
     }
-    done += batch.length;
-    if (done % 500 < CONCURRENCY) console.log(`…${done}/${due.length}`);
-  }
+    results.push({
+      id: e.id,
+      at,
+      alive: r.alive,
+      status: r.status,
+      latency_ms: r.latencyMs,
+      hash: r.hash,
+      price_usd: r.priceUsd,
+      prev_alive: a.next.prev_probe_alive,
+    });
+    if (++done % 1000 === 0) console.log(`…${done}/${due.length}`);
+  });
 
-  for (const batch of chunks(probeRows, 500)) {
+  if (!db) {
+    const by = (f: (r: Record<string, unknown>) => boolean) => changeRows.filter(f).length;
+    const statuses = new Map<string, number>();
+    for (const r of changeRows) statuses.set(String(r.status_code ?? r.error), (statuses.get(String(r.status_code ?? r.error)) ?? 0) + 1);
+    console.log(`DRY RUN — nothing written. ${results.length} probed, ${alive} alive`);
+    console.log(`402 with parsed payload: ${by((r) => r.status_code === 402 && r.accepts_hash !== null)}; 402 unparsed: ${by((r) => r.status_code === 402 && r.accepts_hash === null)}`);
+    console.log("status/error mix:", Object.fromEntries([...statuses].sort((a, b) => b[1] - a[1]).slice(0, 12)));
+    const chainCount = new Map<string, number>();
+    for (const r of changeRows) for (const c of (r.chains as string[] | null) ?? []) chainCount.set(c, (chainCount.get(c) ?? 0) + 1);
+    console.log("live chains:", Object.fromEntries([...chainCount].sort((a, b) => b[1] - a[1])));
+    return;
+  }
+  for (const batch of chunks(changeRows, 500)) {
     const { error } = await db.from("probes").insert(batch);
     if (error) fail(`insert probes: ${error.message}`);
   }
-  for (const batch of chunks(epUpdates, 500)) {
-    const { error } = await db.from("endpoints").upsert(batch, { onConflict: "id" });
-    if (error) fail(`update endpoints: ${error.message}`);
+  for (const batch of chunks(results, 1000)) {
+    const { error } = await db.rpc("apply_probe_results", { rows: batch });
+    if (error) fail(`apply_probe_results: ${error.message}`);
   }
   for (const batch of chunks(events, 500)) {
     const { error } = await db.from("events").insert(batch);
     if (error) fail(`insert events: ${error.message}`);
   }
 
-  const aliveCount = probeRows.filter((p) => p.alive).length;
-  if (probeRows.length === 0) fail("wrote zero probe rows");
-  console.log(`probe done: ${probeRows.length} probes, ${aliveCount} alive, ${events.length} events`);
+  if (results.length === 0) fail("wrote zero probe results");
+  console.log(`probe done: ${results.length} probed, ${alive} alive, ${changeRows.length} state changes, ${events.length} events`);
 }
 
 main().catch((e) => fail(String(e)));
